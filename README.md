@@ -13,7 +13,7 @@ Before you begin you'll need several things:
   
 Check the [requirements.txt](https://github.com/kmix27/trello_glassdoor/blob/master/requirements.txt) to confirm you have the necessary libraries installed.  I'll automate this later.  
 
-From the command line cd into the directory and run:  
+From a fresh terminal cd into the directory and run:  
 
 ```bash  
 python config.py "your api key" "your api token" "Name for your board"

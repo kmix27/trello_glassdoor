@@ -23,13 +23,13 @@ This should create config.json in your directory, and you'll get an empty board 
 
 
 ####Usage:  
-To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  you should see the path '/job-listing/...'  Once you have that direct URL, you'll run the following from the repo directory:  
+To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  You should see the path "glassdoor.com/job-listing/..."  Once you have that direct URL, you'll run the following from the repo directory:  
 
 ```bash
 python trellogd.py "url to the job i'm interested in"
 ```  
 
-You should now have a new list with three cards on your board.  Those cards will have everything that I find relevant when applying for that particular job.  Add more if the spirit moves you.
+You should now have a new list with three cards on your board.  Those cards will have everything that I find relevant when applying for that particular job.  Add more if the spirit so moves you.
 
 Glassdoor doesn't like webscrapers, and while this isn't aimed at pulling down their data en mass,  if you fire it off on too many posts too quickly you will get an error and need to cool off for a bit, maybe try applying for some of those jobs.  
 

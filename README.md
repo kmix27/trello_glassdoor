@@ -16,7 +16,7 @@ Check the [requirements.txt](https://github.com/kmix27/trello_glassdoor/blob/mas
 From the command line cd into the directory and run:  
 
 ```bash  
-python config.py 'your api key' 'your api token'
+python config.py "your api key" "your api token"
 ```  
 
 This should create config.json in your directory, and you'll get an empty board within trello where your lists will populate.  You only need to run config prior to your first use.  
@@ -26,10 +26,12 @@ This should create config.json in your directory, and you'll get an empty board 
 To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  you should see the path '/job-listing/...'  Once you have that direct URL, you'll run the following from the repo directory:  
 
 ```bash
-python trellogd.py 'url to the job i'm interested in'
+python trellogd.py "url to the job i'm interested in"
 ```  
 
-You should now have a new list with three cards on your board.  Those cards will have everything that I find relevant when applying for that particular job.  
+You should now have a new list with three cards on your board.  Those cards will have everything that I find relevant when applying for that particular job.  Add more if the spirit moves you.
+
+Glassdoor doesn't like webscrapers, and while this isn't aimed at pulling down their data en mass,  if you fire it off on too many posts too quickly you will get an error and need to cool off for a bit, maybe try applying for some of those jobs.  
 
 I hope you find this useful! 
 

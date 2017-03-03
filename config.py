@@ -3,9 +3,9 @@ import json
 import argparse
 
 
-def main(key, token):
+def main(key, token, board_name):
     client = TrelloClient(api_key=key, token=token)
-    new_board = client.add_board('Job Search Board')
+    new_board = client.add_board(board_name)
     for i in new_board.all_lists():
         i.close()
     links_label = new_board.add_label(name='Links', color='sky')
@@ -19,13 +19,15 @@ def main(key, token):
         token=token)
     with open('config.json', 'w') as c:
         json.dump(config, c)
-        print('Successfully Created config file\n')
-        print('New board at https://trello.com/b/{}'.format(config['board_id']))
+        print('\nSuccessfully Created: config.json')
+        print('\nSuccessfully Created: {}'.format(board_name))
+        print('\nView board at: https://trello.com/b/{}\n'.format(config['board_id']))
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument('key', type=str, help='add your trello api key')
 parser.add_argument('token', type=str, help='add your trello api token')
+parser.add_argument('board_name', type=str, help='what you would like to name your board')
 args = parser.parse_args()
 
-main(key=args.key, token=args.token)
+main(key=args.key, token=args.token, board_name=args.board_name)

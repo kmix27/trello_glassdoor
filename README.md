@@ -16,7 +16,7 @@ Check the [requirements.txt](https://github.com/kmix27/trello_glassdoor/blob/mas
 From the command line cd into the directory and run:  
 
 ```bash  
-python config.py "your api key" "your api token"
+python config.py "your api key" "your api token" "Name for your board"
 ```  
 
 This should create config.json in your directory, and you'll get an empty board within trello where your lists will populate.  You only need to run config prior to your first use.  

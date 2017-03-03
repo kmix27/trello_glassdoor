@@ -41,7 +41,7 @@ I hope you find this useful!
 * Automate install via pip  
 * Expand function to work with 'jobs/jobs.htm' path on GD   
 * Add other job search sites, control via options flags  
-* browser extension?
+* Automator app
 
 
 

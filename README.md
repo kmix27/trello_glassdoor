@@ -17,7 +17,7 @@ pip install trellogd
 Usage is relatively simple,  You should now have a command line tool called tgd. To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  You should see the path "glassdoor.com/job-listing/..."   
 
 ```bash
-tgd [url for glassdoor job]
+tgd [url of glassdoor job]
 ```  
 Is the basic usage of the tool.  The first time you use it you will be prompted to input your API key and token.  
 This will generate a config.json file in your directory, and you'll get an empty board within trello where your lists will populate.  Starting with the first url you input.  
@@ -28,13 +28,13 @@ Some further options are available:
 If you need to add to a diffrent board than the one specified in your config the options -t or --target are available.  
 
 ```bash
-tgd [url for job] -t [board ID you would like to add to]
+tgd [url of job] -t [board ID you would like to add to]
 ```  
 
 if you would like to update your config file so that all future posts go directly there the options -u or --update can be used:  
 
 ```bash
-tgd [url for job] -t [board ID to change to] -u
+tgd [url of job] -t [board ID to change to] -u
 ```  
 That's all I've got so far.  
 

@@ -16,9 +16,27 @@ import argparse
 import json
 import html2text
 
+
+__version__ = '0.1'
+
 # load config file
-with open('config.json', 'r') as c:
-    auth = json.load(c)
+def load_config():
+    ''' base config file loader,  if no flags are specified this will load,
+    or if one does not yet exist, prompt the user to create a config file'''
+    try:
+        with open('config.json', 'r') as c:
+            auth = json.load(c)
+            return auth
+    except FileNotFoundError:
+        print('\nConfig file not found.  Entering setup\n')
+        from config import main as cfmain
+        cfmain()
+        print('Configuration complete. Populating your board...\n')
+        with open('config.json', 'r') as c:
+            auth = json.load(c)
+            return auth
+
+
 
 
 def pull_data(url):
@@ -47,8 +65,14 @@ def pull_data(url):
     return data
 
 
-def populate_board(url):
+def populate_board(url, target=None, update=False):
     '''takes a URL for a glass door posting, and creates a trello list with helpful job hunt items '''
+    if target:
+        auth = ret_labels(target)
+        if update == True:
+            auth = update_config(target)
+    else:
+        auth = load_config()
     client = TrelloClient(
         api_key=auth['key'],
         token=auth['token'])
@@ -62,7 +86,7 @@ def populate_board(url):
     list_name = data['company'] + ':\n' + data['job'] + '\n\nAdded: ' + str(datetime.now())
     j_title = data['company'] + ': ' + data['job']
     # create list object
-    new_list = board.add_list(name=list_name,pos=None)
+    new_list = board.add_list(name=list_name, pos=None)
     # add cards to list object
     description = new_list.add_card(name='{} \nDetails:'.format(j_title), desc=data['desc'])
     attachCard = new_list.add_card(name='{} \nLinks:'.format(j_title))
@@ -89,9 +113,70 @@ def populate_board(url):
     print('\n' + 'Success! \n\nAdded {} to you board'.format(j_title) + '\n\nCheck it out here:\nhttps://trello.com/b/{}'.format(auth['board_id'] + '\n'))
 
 
-# command line functionality
-parser = argparse.ArgumentParser()
-parser.add_argument('url', type=str, help='add a glassdoor job url to your trello board')
-args = parser.parse_args()
+def update_config(board_id):
+    '''when the -u or --update flag is used this will call ret_labels,
+    and re-write the config file to permanently target that board''' 
+    auth = ret_labels(board_id)
+    with open('config.json', 'w') as uc:
+        json.dump(auth, uc)
+    return auth
 
-populate_board(args.url)
+
+def ret_labels(board_id):
+    ''' when the -t or --target flag are used, this will open
+    the config file, target the requested, get the necessary
+    supporting labels on that board, and return a modified config dict'''
+    auth = load_config()
+    client = TrelloClient(
+        api_key=auth['key'],
+        token=auth['token'])
+    board = client.get_board(board_id=board_id)
+    labels = board.get_labels()
+    bld = {}
+    for i in labels:
+        if i.name == 'Links':
+            bld['link_l'] = i.id
+        if i.name == 'Description':
+            bld['desc_l'] = i.id
+        if i.name == 'To Do':
+            bld['check_l'] = i.id
+    auth['link_l'] = bld['link_l']
+    auth['desc_l'] = bld['desc_l']
+    auth['check_l'] = bld['check_l']
+    auth['board_id'] = board_id
+    return auth
+
+
+def parse_args():
+    '''Takes arguments from cli and parses them'''
+    parser = argparse.ArgumentParser()
+    parser.add_argument('url', type=str, 
+                        help='add a glassdoor job url to your trello board')
+    parser.add_argument('--target_board', dest='target_board',type=str, default=None, 
+                        help='Target a board not in your config.json')
+    parser.add_argument('-t', dest='target',type=str, default=None, 
+                        help='Target a board not in your config.json')
+    parser.add_argument('-u', dest='update', default=False, action='store_true', 
+                        help='re-configure to always target this board, requires target board')
+    parser.add_argument('--update', dest='update', default=False, action='store_true', 
+                        help='re-configure to always target this board')
+    args = parser.parse_args()
+    return args
+
+
+def shell():
+    '''gets necessary args and populates them, 
+    calls the populate function, split out for error handeling'''
+    args = parse_args()
+    populate_board(url=args.url,target=args.target,update=args.update )
+
+
+def main():
+    try:
+        shell()
+    except KeyboardInterrupt:
+        print_('\nCancelling...')
+
+
+if __name__ == '__main__':
+    main()

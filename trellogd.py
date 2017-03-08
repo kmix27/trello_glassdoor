@@ -15,16 +15,19 @@ from datetime import datetime, timedelta
 import argparse
 import json
 import html2text
+from config import config_store
+import os
 
 
-__version__ = '0.1'
+__version__ = '0.2'
 
 # load config file
 def load_config():
     ''' base config file loader,  if no flags are specified this will load,
     or if one does not yet exist, prompt the user to create a config file'''
+    config_store()
     try:
-        with open('config.json', 'r') as c:
+        with open(os.path.expanduser("~/trellogd/config.json"), 'r') as c:
             auth = json.load(c)
             return auth
     except FileNotFoundError:
@@ -32,7 +35,7 @@ def load_config():
         from config import main as cfmain
         cfmain()
         print('Configuration complete. Populating your board...\n')
-        with open('config.json', 'r') as c:
+        with open(os.path.expanduser("~/trellogd/config.json"), 'r') as c:
             auth = json.load(c)
             return auth
 
@@ -117,7 +120,7 @@ def update_config(board_id):
     '''when the -u or --update flag is used this will call ret_labels,
     and re-write the config file to permanently target that board''' 
     auth = ret_labels(board_id)
-    with open('config.json', 'w') as uc:
+    with open(os.path.expanduser("~/trellogd/config.json"), 'w') as uc:
         json.dump(auth, uc)
     return auth
 

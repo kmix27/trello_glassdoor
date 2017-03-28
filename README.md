@@ -13,7 +13,7 @@ pip install trellogd
 ```  
 
 
-####Usage:  
+#### Usage:  
 Usage is relatively simple,  You should now have a command line tool called tgd. To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  You should see the path "glassdoor.com/job-listing/..."   
 
 ```bash
@@ -38,16 +38,16 @@ tgd [url of job] -t [board ID to change to] -u
 ```  
 That's all I've got so far.  
 
-####Caveate  
+#### Caveate  
 Glassdoor doesn't like web scrapers. This obviously isn't aimed at pulling down their data en mass, however, if you fire it off on too many posts too quickly you will get an error and need to cool off for a bit, maybe try applying for some of those jobs.  This will happen to you from a web browser as well, so no surprises.  
 
 I hope you find this useful!  
 
 
-####To Do:
+#### To Do:
 * Expand function to work with 'jobs/jobs.htm' path on GD   
 * Add other job search sites, control via options flags  
-* Automator app
+* Automation
 
 
 

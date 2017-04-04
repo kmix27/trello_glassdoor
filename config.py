@@ -3,10 +3,10 @@ import json
 import os
 
 def config_store():
-    if os.path.exists(os.path.expanduser("~/trellogd")):
+    if os.path.exists(os.path.expanduser("~/.trellogd")):
         return 1
     else:
-        os.mkdir(os.path.expanduser("~/trellogd"))
+        os.mkdir(os.path.expanduser("~/.trellogd"))
         return 0
 
 
@@ -25,7 +25,7 @@ def configure(key, token, board_name):
         check_l=checklist_label.id,
         key=key,
         token=token)
-    with open(os.path.expanduser("~/trellogd/config.json"), 'w') as c:
+    with open(os.path.expanduser("~/.trellogd/config.json"), 'w') as c:
         json.dump(config, c)
         print('\nSuccessfully Created: config.json')
         print('Successfully Created: {}'.format(board_name))

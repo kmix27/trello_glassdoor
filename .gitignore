@@ -12,3 +12,12 @@ config.json
 
 # local dir for local stuff
 local
+
+#ds_store
+.DS_store
+
+# no notebooks here
+*.ipynb
+
+# no notebook checkpoints
+.ipynb_checkpoints

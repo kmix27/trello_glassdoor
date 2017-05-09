@@ -146,10 +146,14 @@ def populate_board(url, target=None, update=False):
     if url_type == 'www.glassdoor.com/job-listing':
         # scrapes GD for job info
         data = pull_data_gd(url)
-    if url_type == 'boards.greenhouse.io':
+    elif url_type == 'boards.greenhouse.io':
         data = pull_data_gh(url)
-    if url_type == 'jobs.lever.co':
+    elif url_type == 'jobs.lever.co':
         data = pull_data_lev(url)
+    else:
+        print("Sorry, {} isn't supported yet\n".format(url_clean[0]))
+        print("Feel free to implement and send a PR, or email: Kyle@KyleMix.com")
+        return None
     data['post_url'] = url
     list_name = data['company'] + ':\n' + data['job'] + '\n\nAdded: ' + str(datetime.now())
     j_title = data['company'] + ': ' + data['job']

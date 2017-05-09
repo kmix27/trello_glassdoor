@@ -1,6 +1,6 @@
-### Trello + GlassDoor job search tool  
+### Trello + ~~GlassDoor~~ \*jobsites job search tool  
 
-I have been using Trello to organize my job search.  I wanted a quick command line tool that would allow me to populate a list on my job search board automatically with the action items I find relevant.  A strong caveat before you use this:  I haven't polished this up too much, so it's kinda hacky.  
+I have been using Trello to organize my job search.  I wanted a quick command line tool that would allow me to populate a list on my job search board automatically with the action items I find relevant.  A strong caveat before you use this:  I haven't polished this up too much, it's kinda hacky, but I haven't managed to break it.  
 
 #### Setup:  
 Before you begin you'll need several things:  
@@ -14,10 +14,10 @@ pip install trellogd
 
 
 #### Usage:  
-Usage is relatively simple,  You should now have a command line tool called tgd. To add a job to your board you'll need a direct link to that job listing on glassdoor.  You are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  You should see the path "glassdoor.com/job-listing/..."   
+Usage is relatively simple,  You should now have a command line tool called tgd. To add a job to your board you'll need a direct link to that job listing on one of the supported sites.  For glassdoor, you are after the flavor that doesn't have a bunch of other job listings in a navbar on the left, you want just the listing you are interested in.  You'll probably need to right click and open a job link in a new tab.  You should see the path "glassdoor.com/job-listing/..." , "boards.greenhouse.io", or "jobs.lever.co" 
 
 ```bash
-tgd [url of glassdoor job]
+tgd [url of glassdoor,greenhouse,lever job]
 ```  
 Is the basic usage of the tool.  The first time you use it you will be prompted to input your API key and token.  
 This will generate a config.json file in your directory, and you'll get an empty board within trello where your lists will populate.  Starting with the first url you input.  
@@ -39,7 +39,7 @@ tgd [url of job] -t [board ID to change to] -u
 That's all I've got so far.  
 
 #### Caveate  
-Glassdoor doesn't like web scrapers. This obviously isn't aimed at pulling down their data en mass, however, if you fire it off on too many posts too quickly you will get an error and need to cool off for a bit, maybe try applying for some of those jobs.  This will happen to you from a web browser as well, so no surprises.  
+Glassdoor (and others) don't like web scrapers. This obviously isn't aimed at pulling down their data en mass, however, if you fire it off on too many posts too quickly you will get an error and need to cool off for a bit, maybe try applying for some of those jobs.  This will happen to you from a web browser as well, so no surprises.  
 
 I hope you find this useful!  
 
@@ -47,7 +47,8 @@ I hope you find this useful!
 #### To Do:
 * Expand function to work with 'jobs/jobs.htm' path on GD   
 * Add other job search sites, control via options flags  
-* Automation
 
+#### Update 5/9/17:
+Added automatic functionality for jobs from  boards.greenhous.io, and jobs.lever.co, who needs flags. Immediately regretted my choice of names.
 
 

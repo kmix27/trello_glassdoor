@@ -14,7 +14,7 @@ config.json
 local
 
 #ds_store
-.DS_store
+.DS_Store
 
 # no notebooks here
 *.ipynb

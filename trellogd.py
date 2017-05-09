@@ -19,7 +19,7 @@ from config import config_store
 import os
 
 
-__version__ = '0.2'
+__version__ = '0.2.1'
 
 # load config file
 def load_config():
@@ -42,8 +42,8 @@ def load_config():
 
 
 
-def pull_data(url):
-    '''helper function to scrape data and return a dict'''
+def pull_data_gd(url):
+    '''helper function to scrape data from glassdoor post and return a dict'''
     ua = UserAgent()
     head = ua.random
     resp = requests.get(url, headers={'User-Agent': head})
@@ -58,12 +58,65 @@ def pull_data(url):
         dept = job.split('-')[-1].strip()
     company = hcell.find(class_='ib').text.strip()
     city = hcell.find(class_='subtle ib').text.replace(' – ', '').split(',')[0]
-    url = soup.find(class_='empLinks tbl').find('a')['href']
+#     apply url
+    ap_url = soup.find(class_='empLinks tbl').find('a')['href']
     ap_type = soup.find(class_='empLinks tbl').find('a').text
     descHtml = soup.find(class_='jobDescriptionContent desc')
     h = html2text.HTML2Text()
     desc = h.handle(str(descHtml))
-    data = dict(job=job, url=url, ap_type=ap_type, desc=desc,
+    data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
+                descHtml=descHtml, company=company, city=city, dept=dept)
+    return data
+
+
+def pull_data_gh(url):
+    ''' Helper function to scrape a Greenhouse posting returns a dict'''
+    ua = UserAgent()
+    head = ua.random
+    resp = requests.get(url, headers={'User-Agent': head})
+    soup = BeautifulSoup(resp.text, 'lxml')
+#     job title
+    job = soup.find(id='header').find(class_='app-title').text
+#     app link
+    ap_url = url + '#app'
+    ap_type = 'Greenhouse'
+    # content
+    cont = soup.find(id = 'content')
+    h = html2text.HTML2Text()
+    desc = h.handle(str(cont))
+#     don't need deschtml, should probably get rid everywhere
+    descHtml = ''
+#     company
+    co_name = soup.find(id='header').find(class_='company-name')
+    company = list(co_name.stripped_strings)[0].strip('at ')
+    city = soup.find(id='header').find(class_='location')
+    city = list(city.stripped_strings)[0]
+    dept = ''
+    data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
+                descHtml=descHtml, company=company, city=city, dept=dept)
+    return data
+    
+    
+    
+def pull_data_lev(url):
+    '''Helper function to scrape a lever.io listing and return a dict'''
+    ua = UserAgent()
+    head = ua.random
+    resp = requests.get(url, headers={'User-Agent': head})
+    soup = BeautifulSoup(resp.text, 'lxml')
+    lev_head = soup3.find(class_ ='section-wrapper accent-section page-full-width')
+    job = lev_head.find(class_ = 'posting-headline').find('h2').text
+    ap_type = 'Lever'
+    ap_url = lev_head.find(class_="postings-btn-wrapper").find('a')['href']
+    lev_con = soup3.find(class_='content')
+    h = html2text.HTML2Text()
+    desc = h.handle(str(lev_con))
+    descHtml = ''
+    company = url.strip('https://jobs.lever.co').split('/')[0]
+    cats = lev_head.find(class_ = 'posting-headline').find(class_='posting-categories')
+    city = cats.find(class_='sort-by-time posting-category medium-category-label').text
+    dept = cats.find(class_="sort-by-team posting-category medium-category-label").text
+    data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
                 descHtml=descHtml, company=company, city=city, dept=dept)
     return data
 
@@ -79,13 +132,25 @@ def populate_board(url, target=None, update=False):
     client = TrelloClient(
         api_key=auth['key'],
         token=auth['token'])
+    # gets board Labels
     board = client.get_board(board_id=auth['board_id'])
     link_l = client.get_label(auth['link_l'], auth['board_id'])
     desc_l = client.get_label(auth['desc_l'], auth['board_id'])
     check_l = client.get_label(auth['check_l'], auth['board_id'])
-    # scrapes GD for job info
-    data = pull_data(url)
-    data['gd_url'] = url
+    # check URL for type
+    url_clean = url.strip('https://').split('/')
+    if url_clean[0] == 'www.glassdoor.com':
+        url_type = '/'.join(url_clean[:2])
+    else:
+        url_type = url_clean[0]
+    if url_type == 'www.glassdoor.com/job-listing':
+        # scrapes GD for job info
+        data = pull_data_gd(url)
+    if url_type == 'boards.greenhouse.io':
+        data = pull_data_gh(url)
+    if url_type == 'jobs.lever.co':
+        data = pull_data_lev(url)
+    data['post_url'] = url
     list_name = data['company'] + ':\n' + data['job'] + '\n\nAdded: ' + str(datetime.now())
     j_title = data['company'] + ': ' + data['job']
     # create list object
@@ -93,19 +158,26 @@ def populate_board(url, target=None, update=False):
     # add cards to list object
     description = new_list.add_card(name='{} \nDetails:'.format(j_title), desc=data['desc'])
     attachCard = new_list.add_card(name='{} \nLinks:'.format(j_title))
-    attachCard.attach(name=data['ap_type'], url=data['url'])
-    attachCard.attach(name='GlassDoor posting', url=data['gd_url'])
+    attachCard.attach(name=data['ap_type'], url=data['ap_url'])
+    attachCard.attach(name='Original posting', url=data['post_url'])
     # attempts to build a direct search link for linkedin which targets company and department if available
     if data['dept'] != '':
+        li_url = 'https://www.linkedin.com/search/results/people/?keywords=' + data['company'].replace(' ','%20') + '%20' + data['dept'].replace(' ', '%20')
         attachCard.attach(name='Linkedin search, Company + Department',
-            url='https://www.linkedin.com/search/results/people/?keywords=' + data['company'].replace(' ','%20') + '%20' + data['dept'].replace(' ', '%20'))
+            url= li_url) 
     else:
+        li_url = 'https://www.linkedin.com/search/results/people/?keywords=' + data['company'].replace(' ', '%20')
         attachCard.attach(name='Linkedin search, Company',
-            url='https://www.linkedin.com/search/results/people/?keywords=' + data['company'].replace(' ', '%20'))
+            url=li_url)
+    goog_base = 'https://www.google.com/#safe=off&q='
+    goog_company = goog_base+data['company'].replace(' ','+')
+    attachCard.attach(name='Google search, Company',url=goog_company)
+    gd_search_hack = 'https://www.glassdoor.com/Reviews/{}-reviews-SRCH_KE0,{}.htm'.format(data['company'], len(data['company']))
     dt = datetime.now() + timedelta(days=3)
-    cl = ['Research Hiring manager', 'Polish Resume',
-          'Craft Cover Letter', 'Attempt to make contact on personal level',
-          'Complete application', 'Send application',
+    cl = ['Research Hiring manager [Linkedin]({})'.format(li_url), 'Research company, [glassdoor]({}), [google]({})'.format(gd_search_hack, goog_company),
+          'Polish Resume [creddle](https://resume.creddle.io/)',
+          'Craft Cover Letter, [Drive](https://drive.google.com)', 'Attempt to make contact on personal level [Linkedin]({})'.format(li_url),
+          'Complete application [Application link]({})'.format(data['ap_url']), 'Send application',
           'Wait three days: {}'.format(str(dt.date())), 'Send follow up email']
     clCard = new_list.add_card('To Do List')
     clCard.add_checklist(title='To Do!\n\n{}'.format(j_title), items=cl)
@@ -114,6 +186,7 @@ def populate_board(url, target=None, update=False):
     description.add_label(desc_l)
     clCard.add_label(check_l)
     print('\n' + 'Success! \n\nAdded {} to you board'.format(j_title) + '\n\nCheck it out here:\nhttps://trello.com/b/{}'.format(auth['board_id'] + '\n'))
+
 
 
 def update_config(board_id):

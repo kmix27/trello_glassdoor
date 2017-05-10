@@ -17,9 +17,10 @@ import json
 import html2text
 from config import config_store
 import os
+import re
 
 
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 
 # load config file
 def load_config():
@@ -95,9 +96,8 @@ def pull_data_gh(url):
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
                 descHtml=descHtml, company=company, city=city, dept=dept)
     return data
-    
-    
-    
+
+
 def pull_data_lev(url):
     '''Helper function to scrape a lever.io listing and return a dict'''
     ua = UserAgent()
@@ -116,6 +116,28 @@ def pull_data_lev(url):
     cats = lev_head.find(class_ = 'posting-headline').find(class_='posting-categories')
     city = cats.find(class_='sort-by-time posting-category medium-category-label').text
     dept = cats.find(class_="sort-by-team posting-category medium-category-label").text
+    data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
+                descHtml=descHtml, company=company, city=city, dept=dept)
+    return data
+
+
+def pull_data_li(url):
+    '''Helper function to scrape a linkedin listing and return a dict'''
+    ua = UserAgent()
+    head = ua.random
+    resp = requests.get(url, headers={'User-Agent': head})
+    soup = BeautifulSoup(resp.text, 'lxml')
+    ap_url = url
+    ap_type = 'Linkedin'
+    pat = re.compile(r'(?=\bat\b)[\s\w]*(?<=\bin\b)')
+    title_ = soup.find('title').text
+    company = re.findall(pat,title_)[0].strip('at ').strip(' in')
+    city = title_.split(' in ')[-1].split(' | ')[0].strip()
+    job = title_.split(' at ')[0].strip(' Job')
+    con_ = soup.find(property="og:description")['content']
+    desc = con_.replace('\n','\n \n').replace('· ', '\n\n· ').replace('&nbsp;&nbsp;','\n\n').replace('&nbsp;','')  
+    descHtml = ''
+    dept = ''
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
                 descHtml=descHtml, company=company, city=city, dept=dept)
     return data
@@ -141,8 +163,11 @@ def populate_board(url, target=None, update=False):
     url_clean = url.strip('https://').split('/')
     if url_clean[0] == 'www.glassdoor.com':
         url_type = '/'.join(url_clean[:2])
+    if url_clean[0] == 'www.linkedin.com':
+        url_type = '/'.join(url_clean[:3])
     else:
         url_type = url_clean[0]
+    # use url type to call scrape function
     if url_type == 'www.glassdoor.com/job-listing':
         # scrapes GD for job info
         data = pull_data_gd(url)
@@ -150,8 +175,10 @@ def populate_board(url, target=None, update=False):
         data = pull_data_gh(url)
     elif url_type == 'jobs.lever.co':
         data = pull_data_lev(url)
+    elif url_type == 'www.linkedin.com/jobs/view':
+        data = pull_data_li(url)
     else:
-        print("Sorry, {} isn't supported yet\n".format(url_clean[0]))
+        print("Sorry, either {} isn't supported yet, or something unexpectedly changed\n".format(url_clean[0]))
         print("Feel free to implement and send a PR, or email: Kyle@KyleMix.com")
         return None
     data['post_url'] = url

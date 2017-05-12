@@ -20,7 +20,7 @@ import os
 import re
 
 
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 
 # load config file
 def load_config():
@@ -62,11 +62,13 @@ def pull_data_gd(url):
 #     apply url
     ap_url = soup.find(class_='empLinks tbl').find('a')['href']
     ap_type = soup.find(class_='empLinks tbl').find('a').text
-    descHtml = soup.find(class_='jobDescriptionContent desc')
+    # removing this, it's unneeded
+    # descHtml = soup.find(class_='jobDescriptionContent desc')
+    referer = 'GlassDoor' 
     h = html2text.HTML2Text()
     desc = h.handle(str(descHtml))
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
-                descHtml=descHtml, company=company, city=city, dept=dept)
+                referer=referer, company=company, city=city, dept=dept)
     return data
 
 
@@ -86,15 +88,15 @@ def pull_data_gh(url):
     h = html2text.HTML2Text()
     desc = h.handle(str(cont))
 #     don't need deschtml, should probably get rid everywhere
-    descHtml = ''
 #     company
     co_name = soup.find(id='header').find(class_='company-name')
     company = list(co_name.stripped_strings)[0].strip('at ')
     city = soup.find(id='header').find(class_='location')
     city = list(city.stripped_strings)[0]
     dept = ''
+    referer='GreenHouse'
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
-                descHtml=descHtml, company=company, city=city, dept=dept)
+                referer=referer, company=company, city=city, dept=dept)
     return data
 
 
@@ -106,18 +108,17 @@ def pull_data_lev(url):
     soup = BeautifulSoup(resp.text, 'lxml')
     lev_head = soup3.find(class_ ='section-wrapper accent-section page-full-width')
     job = lev_head.find(class_ = 'posting-headline').find('h2').text
-    ap_type = 'Lever'
     ap_url = lev_head.find(class_="postings-btn-wrapper").find('a')['href']
     lev_con = soup3.find(class_='content')
     h = html2text.HTML2Text()
     desc = h.handle(str(lev_con))
-    descHtml = ''
+    ap_type = referer = 'Lever.io'
     company = url.strip('https://jobs.lever.co').split('/')[0]
     cats = lev_head.find(class_ = 'posting-headline').find(class_='posting-categories')
     city = cats.find(class_='sort-by-time posting-category medium-category-label').text
     dept = cats.find(class_="sort-by-team posting-category medium-category-label").text
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
-                descHtml=descHtml, company=company, city=city, dept=dept)
+                referer=referer, company=company, city=city, dept=dept)
     return data
 
 
@@ -128,7 +129,7 @@ def pull_data_li(url):
     resp = requests.get(url, headers={'User-Agent': head})
     soup = BeautifulSoup(resp.text, 'lxml')
     ap_url = url
-    ap_type = 'Linkedin'
+    referer = ap_type = 'Linkedin'
     pat = re.compile(r'(?=\bat\b)[\s\w]*(?<=\bin\b)')
     title_ = soup.find('title').text
     company = re.findall(pat,title_)[0].strip('at ').strip(' in')
@@ -136,10 +137,31 @@ def pull_data_li(url):
     job = title_.split(' at ')[0].strip(' Job')
     con_ = soup.find(property="og:description")['content']
     desc = con_.replace('\n','\n \n').replace('· ', '\n\n· ').replace('&nbsp;&nbsp;','\n\n').replace('&nbsp;','')  
-    descHtml = ''
     dept = ''
     data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
-                descHtml=descHtml, company=company, city=city, dept=dept)
+                referer=referer, company=company, city=city, dept=dept)
+    return data
+
+
+def pull_data_js(url):
+    '''helper function to scrape data from jobscore post and return a dict'''
+    ua = UserAgent()
+    head = ua.random
+    resp = requests.get(url, headers={'User-Agent': head})
+    soup = BeautifulSoup(resp.text, 'lxml')
+    ap_type = referer = 'JobScore'
+    job = soup.find(class_='js-title').text
+    company = url.strip('https://careers.jobscore.com/careers/').split('/')[0]
+    dept = soup.find(class_='js-subtitle').text.split(' | ')[0]
+    city = soup.find(class_='js-subtitle').text.split(' | ')[1]
+    cont = soup.find(class_='js-area-container js-section-job-description')
+    h = html2text.HTML2Text()
+    desc = h.handle(str(cont))
+    href = soup.find(class_='js-btn js-btn-block js-btn-apply')['href']
+    base = 'https://careers.jobscore.com'
+    ap_url = base + href
+    data = dict(job=job, ap_url=ap_url, ap_type=ap_type, desc=desc,
+                referer=referer, company=company, city=city, dept=dept)
     return data
 
 
@@ -177,6 +199,8 @@ def populate_board(url, target=None, update=False):
         data = pull_data_lev(url)
     elif url_type == 'www.linkedin.com/jobs/view':
         data = pull_data_li(url)
+    elif url_type == 'careers.jobscore.com':
+        data = pull_data_js(url)
     else:
         print("Sorry, either {} isn't supported yet, or something unexpectedly changed\n".format(url_clean[0]))
         print("Feel free to implement and send a PR, or email: Kyle@KyleMix.com")
@@ -212,6 +236,9 @@ def populate_board(url, target=None, update=False):
           'Wait three days: {}'.format(str(dt.date())), 'Send follow up email']
     clCard = new_list.add_card('To Do List')
     clCard.add_checklist(title='To Do!\n\n{}'.format(j_title), items=cl)
+    clCard.set_due(dt.date())
+    notes_card = new_list.add_card(name='Notes')
+    notes_card.comment('Added Via tgd on: {}\n Refered through {}'.format(datetime.now(), data['referer']))
     # add color coded labels to cards
     attachCard.add_label(link_l)
     description.add_label(desc_l)

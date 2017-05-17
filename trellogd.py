@@ -20,7 +20,7 @@ import os
 import re
 
 
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 
 # load config file
 def load_config():
@@ -106,10 +106,10 @@ def pull_data_lev(url):
     head = ua.random
     resp = requests.get(url, headers={'User-Agent': head})
     soup = BeautifulSoup(resp.text, 'lxml')
-    lev_head = soup3.find(class_ ='section-wrapper accent-section page-full-width')
+    lev_head = soup.find(class_ ='section-wrapper accent-section page-full-width')
     job = lev_head.find(class_ = 'posting-headline').find('h2').text
     ap_url = lev_head.find(class_="postings-btn-wrapper").find('a')['href']
-    lev_con = soup3.find(class_='content')
+    lev_con = soup.find(class_='content')
     h = html2text.HTML2Text()
     desc = h.handle(str(lev_con))
     ap_type = referer = 'Lever.io'

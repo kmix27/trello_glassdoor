@@ -6,7 +6,7 @@ def readme():
 
 
 setup(name='trellogd',
-    version='0.2.3',
+    version='0.2.4',
     description='A tool for organizing your jobsearch',
     long_description=readme(),
     url='https://github.com/kmix27/trello_glassdoor',
